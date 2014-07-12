@@ -1,6 +1,10 @@
 import urllib2, json
 from rtree import index
 from flask import Flask, Response, render_template, jsonify
+try:
+    from flask.ext.cors import cross_origin
+except:
+    from flask_cors import cross_origin
 #set various global values
 CART_API_URL = "http://data.sfgov.org/resource/rqzj-sfat.json?status=APPROVED" #don't advertize carts with expired permits!
 NEARBY_LAT_DELTA = 0.005 #latitude difference used to locate nearby carts
