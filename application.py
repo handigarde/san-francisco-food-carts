@@ -7,7 +7,7 @@ NEARBY_LAT_DELTA = 0.005 #latitude difference used to locate nearby carts
 NEARBY_LONG_DELTA = 0.005 #longitude difference used to locate nearby carts
 CARTS = [] #list of maps containing cart info
 IDX = None
-#note to self - long is probably not the best x coordinate to use, as distance between degress varies depending on latitude
+#note to self - long is probably not the best x coordinate to use, as distance between degrees varies depending on latitude
 
 def load_cart_info(url):
     #Create request object to request the aforementioned list
