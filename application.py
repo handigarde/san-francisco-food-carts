@@ -1,6 +1,6 @@
 import urllib2, json
 from rtree import index
-from flask import Flask, Response, render_template
+from flask import Flask, Response, render_template, jsonify
 #set various global values
 CART_API_URL = "http://data.sfgov.org/resource/rqzj-sfat.json?status=APPROVED" #don't advertize carts with expired permits!
 NEARBY_LAT_DELTA = 0.005 #latitude difference used to locate nearby carts
@@ -95,7 +95,7 @@ def send_nearby_carts(lat_long, category='Anything'):
     for index in find_nearby_carts(longitude, latitude, IDX):
         if index in TAGS_BY_TRUCK[category]:
             result.append(CARTS[index])
-    return Respone(json.JSONEncoder.encode(result), mimetype='application/json')
+    return jsonify(result)
         
         
 app.run(host='0.0.0.0')
