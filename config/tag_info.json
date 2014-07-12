@@ -1,0 +1,125 @@
+{
+    "Beverages": [
+        "beverage",
+        "tea",
+        "coff",
+        "drink",
+        "water",
+        "juice",
+        "milk",
+        "hot cocoa",
+        "espresso",
+        "cappucino",
+        "refreshment",
+        "gatorade"
+    ],
+    "Soup": [
+        "soup"
+    ],
+    "Snacks": [
+        "snacks",
+        "nuts",
+        "chips",
+        "cookies",
+        "candy",
+        "granola",
+        "rice pudding",
+        "crackerjack"
+    ],
+    "Breakfast": [
+        "muffin",
+        "bagel",
+        "croissant",
+        "eggs",
+        "breakfast",
+        "waffle",
+        "scone"
+    ],
+    "Italian food": [
+        "pizza",
+        "italian"
+    ],
+    "Pastries": [
+        "cupcake",
+        "flan",
+        "muffin",
+        "scone",
+        "brownie",
+        "croissant",
+        "donut",
+        "pastry",
+        "pastries"
+    ],
+    "Tex-mex": [
+        "taco",
+        "burrito",
+        "salsa",
+        "tortilla",
+        "nacho",
+        "chimichanga",
+        "torta",
+        "quesadilla",
+        "churro"
+    ],
+    "Comfort food": [
+        "burger",
+        "hot dog",
+        "mac & cheese",
+        "fries",
+        "onion rings",
+        "grilled cheese"
+    ],
+    "BBQ": [
+        "smoked",
+        "bbq",
+        "pork",
+        "ribs"
+    ],
+    "Greek": [
+        "gyro",
+        "kebob",
+        "ka-bob"
+    ],
+    "Sandwiches": [
+        "sandwich",
+        "melt"
+    ],
+    "Burgers": [
+        "burger"
+    ],
+    "Hot dogs": [
+        "hot dog"
+    ],
+    "Asian food": [
+        "rice",
+        "fusion",
+        "noodle",
+        "asian",
+        "spring roll"
+    ],
+    "Indian food": [
+        "indian",
+        "samosa"
+    ],
+    "Salad": [
+        "salad"
+    ],
+    "Southern food": [
+        "bbq",
+        "mac & cheese",
+        "corn dog",
+        "corn bread",
+        "brownie"
+    ],
+    "Pretzels": [
+        "pretzel"
+    ],
+    "Desserts": [
+        "donut",
+        "dessert",
+        "cupcake"
+    ],
+    "Fruits": [
+        "fruit"
+    ]
+}

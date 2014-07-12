@@ -6,8 +6,17 @@ CART_API_URL = "http://data.sfgov.org/resource/rqzj-sfat.json?status=APPROVED" #
 NEARBY_LAT_DELTA = 0.005 #latitude difference used to locate nearby carts
 NEARBY_LONG_DELTA = 0.005 #longitude difference used to locate nearby carts
 CARTS = [] #list of maps containing cart info
+TAG_INFO_FILE = "config/tag_info.json"
+TAGS_BY_ITEM = {} #List of food items to be used on the front-end
+TAGS_BY_TRUCK = {}
 IDX = None
 #note to self - long is probably not the best x coordinate to use, as distance between degrees varies depending on latitude
+
+def load_category_tags(file_location):
+    #set TAGS_BY_ITEM
+    json_file = open(file_location)
+    return json.load(json_file)
+    
 
 def load_cart_info(url):
     #Create request object to request the aforementioned list
@@ -21,6 +30,7 @@ def load_cart_info(url):
     allCarts = json.loads(out)
     #remove unnecessary fields and keep only carts with valid latitude/longitude (for showing on map)
     carts = []
+    tag_index = {}
     IDX = index.Index()
     for cart in allCarts:
         if 'latitude' in cart:
@@ -31,25 +41,48 @@ def load_cart_info(url):
             temp_cart['latitude'] = cart['latitude']
             temp_cart['longitude'] = cart['longitude']
             carts.append(temp_cart)
+            fooditems = temp_cart['fooditems'].lower()
+            for tag in TAGS_BY_ITEM.keys():
+                matched = False
+                for item in TAGS_BY_ITEM[tag]:
+                    if item in fooditems and not matched:
+                        matched = True
+                        if tag in tag_index:
+                            tag_index[tag].append(len(carts)-1)
+                        else:
+                            tag_index[tag] = [len(carts)-1]
+                    
             x = float(temp_cart['longitude'])
             y = float(temp_cart['latitude'])
             #in order to index based on a point, x1 must = x2 and y1 must = y2 (box with no length/width)
             IDX.insert(len(carts)-1,(x,y,x,y))
-    return (carts, IDX)
+    return (carts, tag_index, IDX)
 
 def find_nearby_carts(longitude, latitude,index):
     nearby_box = (longitude - NEARBY_LONG_DELTA, latitude - NEARBY_LAT_DELTA, longitude + NEARBY_LONG_DELTA, latitude + NEARBY_LAT_DELTA)
     matching_indices = list(IDX.intersection(nearby_box))
     return matching_indices
 
+
+TAGS_BY_ITEM = load_category_tags(TAG_INFO_FILE)
 print 'Loading cart info'
-CARTS, IDX = load_cart_info(CART_API_URL)
+CARTS, TAGS_BY_TRUCK, IDX = load_cart_info(CART_API_URL)
 print '%d carts loaded' % len(CARTS)
 app = Flask(__name__)
 
 @app.route('/')
 def showIndex():
-    return render_template('index.html')
+    tags = TAGS_BY_TRUCK.keys()
+    tags.sort()
+    return render_template('index.html',categories=tags)
+    
+@app.route('/categories')
+def showCategories():
+    return str(TAGS_BY_TRUCK)
+    
+@app.route('/truck/<int:index>')
+def show_truck_info(index):
+    return Response(json.dumps(CARTS[index]), mimetype='application/json')
 
 @app.route('/location/<lat_long>')
 def send_nearby_carts(lat_long):

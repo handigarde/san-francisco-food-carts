@@ -155,9 +155,13 @@
 					<div class="select-prompt"><h3>Show me trucks selling </h3></div>
 					<div class="select-options">
 						<select>
-							<option>Grilled Cheese</option>
+						    <option>Anything</option>
+						    {% for category in categories %}
+						    <option>{{ category }}</option>
+						    {% endfor %}
+							<!--<option>Grilled Cheese</option>
 							<option>Hot Dogs</option>
-							<option>Tacos</option>
+							<option>Tacos</option>-->
 						</select>
 					</div>
 					<div class="select-prompt"><h3>near &nbsp;</h3></div>
