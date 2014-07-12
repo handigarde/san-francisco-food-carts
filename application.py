@@ -79,11 +79,11 @@ def showIndex():
     
 @app.route('/categories')
 def showCategories():
-    return Response(json.dumps(TAGS_BY_TRUCK), mimetype='application/json')
+    return jsonify(data=TAGS_BY_TRUCK)
     
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
-    return Response(json.dumps(CARTS[index]), mimetype='application/json')
+    return jsonify(data=CARTS[index])
 
 @app.route('/location/<lat_long>')
 @app.route('/location/<lat_long>/<category>')
