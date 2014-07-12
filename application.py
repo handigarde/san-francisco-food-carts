@@ -30,7 +30,7 @@ def load_cart_info(url):
     allCarts = json.loads(out)
     #remove unnecessary fields and keep only carts with valid latitude/longitude (for showing on map)
     carts = []
-    tag_index = {}
+    tag_index = {'Anything': []}
     IDX = index.Index()
     for cart in allCarts:
         if 'latitude' in cart:
@@ -42,6 +42,7 @@ def load_cart_info(url):
             temp_cart['longitude'] = cart['longitude']
             carts.append(temp_cart)
             fooditems = temp_cart['fooditems'].lower()
+            tag_index['Anything'].append(len(carts)-1)
             for tag in TAGS_BY_ITEM.keys():
                 matched = False
                 for item in TAGS_BY_ITEM[tag]:
@@ -78,20 +79,22 @@ def showIndex():
     
 @app.route('/categories')
 def showCategories():
-    return str(TAGS_BY_TRUCK)
+    return Response(json.dumps(TAGS_BY_TRUCK), mimetype='application/json')
     
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
     return Response(json.dumps(CARTS[index]), mimetype='application/json')
 
 @app.route('/location/<lat_long>')
-def send_nearby_carts(lat_long):
+@app.route('/location/<lat_long>/<category>')
+def send_nearby_carts(lat_long, category='Anything'):
     lat_long = lat_long.split(',')
     latitude = float(lat_long[0])
     longitude = float(lat_long[1])
     result = []
     for index in find_nearby_carts(longitude, latitude, IDX):
-        result.append(CARTS[index])
+        if index in TAGS_BY_TRUCK[category]:
+            result.append(CARTS[index])
     return Response(json.dumps(result), mimetype='application/json')
         
         
