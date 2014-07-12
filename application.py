@@ -87,6 +87,7 @@ def show_truck_info(index):
 
 @app.route('/location/<lat_long>')
 @app.route('/location/<lat_long>/<category>')
+@cross_origin()
 def send_nearby_carts(lat_long, category='Anything'):
     lat_long = lat_long.split(',')
     latitude = float(lat_long[0])
