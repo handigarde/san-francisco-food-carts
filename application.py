@@ -58,4 +58,4 @@ def send_nearby_carts(lat_long):
     return Response(json.dumps(result), mimetype='application/json')
         
         
-app.run()
+app.run(host='0.0.0.0')
