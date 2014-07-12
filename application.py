@@ -95,7 +95,7 @@ def send_nearby_carts(lat_long, category='Anything'):
     for index in find_nearby_carts(longitude, latitude, IDX):
         if index in TAGS_BY_TRUCK[category]:
             result.append(CARTS[index])
-    return Response(json.dumps(result), mimetype='application/json')
+    return json.dumps(result)
         
         
 app.run(host='0.0.0.0')
