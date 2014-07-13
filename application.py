@@ -92,8 +92,11 @@ def showIndex():
     return render_template('index.html',categories=tags)
     
 @app.route('/categories')
+@cross_origin()
 def showCategories():
-    return jsonify(data=TAGS_BY_TRUCK.keys())
+    categories = TAGS_BY_TRUCK.keys()
+    categories.sort()
+    return jsonify(data=categories)
     
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
