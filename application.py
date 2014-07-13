@@ -83,7 +83,7 @@ def load_cart_info(url):
             for tag in TAGS_BY_ITEM.keys():
                 matched = False
                 for item in TAGS_BY_ITEM[tag]:
-                    if item in fooditems and not matched:
+                    if item in fooditems and not matched and 'except' not in fooditems:
                         matched = True
                         if tag in tag_index:
                             tag_index[tag].append(len(carts)-1)
@@ -111,9 +111,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def showIndex():
-    tags = TAGS_BY_TRUCK.keys()
-    tags.sort()
-    return render_template('index.html',categories=tags)
+    options = {'/location/<lat_long>': 'Pass comma separated latitude,longitude value to get info for nearby carts. Values returned are in the format {"data": [list of carts containing address, applicant, distance, facilitytype, fooditems, latitude, and longitude]}', '/location/<lat_long>/<category>': 'Returns all carts near comma separated latitude longitude matching a particular category. List of available categories can be found using the /categories option. Results formatted the same as /location/<lat_long>', '/categories': 'Returns categories in format "data"=[list of categories]'}
+    return jsonify(options)
     
 @app.route('/categories')
 @cross_origin()
