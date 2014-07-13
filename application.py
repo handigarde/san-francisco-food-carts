@@ -22,7 +22,7 @@ def load_category_tags(file_location):
     return json.load(json_file)
 
 def get_distance_address(start_point, end_point):
-    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial"
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
     result= json.load(urllib.urlopen(distance_url))
     distance = result['rows'][0]['elements'][0]['distance']['text']
     address = result['destination_addresses'][0]
@@ -41,7 +41,7 @@ def get_distances_and_addresses(start_point, destinations):
             if i < len(destinations):
                 temp_distance_url = temp_distance_url +'|'+ destinations[i]
             i += 1
-        temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial"
+        temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
         result = json.load(urllib.urlopen(temp_distance_url))
         for address in result['destination_addresses']:
             addresses.append(address)
@@ -129,7 +129,7 @@ def show_truck_info(index):
 def showDistance(lat_long):
     start_point = lat_long
     end_point = '37.7841316511211,-122.39591339799'
-    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial"
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
     result= json.load(urllib.urlopen(distance_url))
     return jsonify(result)
 
