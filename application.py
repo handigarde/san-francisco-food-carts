@@ -93,7 +93,7 @@ def showIndex():
     
 @app.route('/categories')
 def showCategories():
-    return jsonify(data={'categories': TAGS_BY_TRUCK.keys()})
+    return jsonify(data=TAGS_BY_TRUCK.keys())
     
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
