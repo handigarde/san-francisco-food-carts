@@ -69,7 +69,9 @@ def load_cart_info(url):
             temp_cart = {}
             temp_applicant_name = cart['applicant']
             if 'DBA' in temp_applicant_name:
-                temp_applicant_name = temp_applicant_name.split('DBA')[1][1:].strip()   
+                temp_applicant_name = temp_applicant_name.split('DBA')[-1][1:].strip()
+            elif 'dba' in temp_applicant_name:
+                temp_applicant_name = temp_applicant_name.split('dba')[-1][1:].strip()               
             temp_cart['applicant'] = temp_applicant_name
             temp_cart['facilitytype'] = cart['facilitytype']
             temp_cart['fooditems'] = cart['fooditems']
