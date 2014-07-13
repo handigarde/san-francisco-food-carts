@@ -14,6 +14,7 @@ TAG_INFO_FILE = "config/tag_info.json"
 TAGS_BY_ITEM = {} #List of food items to be used on the front-end
 TAGS_BY_TRUCK = {}
 IDX = None
+API_KEY='AIzaSyDrxXyrmwzQr6kbt6TKd-9rxvy7qacSG4U'
 #note to self - long is probably not the best x coordinate to use, as distance between degrees varies depending on latitude
 
 def load_category_tags(file_location):
@@ -22,14 +23,14 @@ def load_category_tags(file_location):
     return json.load(json_file)
 
 def get_distance_address(start_point, end_point):
-    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key="+API_KEY
     result= json.load(urllib.urlopen(distance_url))
     distance = result['rows'][0]['elements'][0]['distance']['text']
     address = result['destination_addresses'][0]
     return distance, address
     
 def get_distances_and_addresses(start_point, destinations):
-    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="
+    distance_url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="
     i=0
     multiplier=0
     distances = []
@@ -41,7 +42,7 @@ def get_distances_and_addresses(start_point, destinations):
             if i < len(destinations):
                 temp_distance_url = temp_distance_url +'|'+ destinations[i]
             i += 1
-        temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
+        temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial&key="+API_KEY
         result = json.load(urllib.urlopen(temp_distance_url))
         for address in result['destination_addresses']:
             addresses.append(address)
@@ -129,7 +130,7 @@ def show_truck_info(index):
 def showDistance(lat_long):
     start_point = lat_long
     end_point = '37.7841316511211,-122.39591339799'
-    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key="+API_KEY
     result= json.load(urllib.urlopen(distance_url))
     return jsonify(result)
 
