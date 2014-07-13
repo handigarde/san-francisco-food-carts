@@ -34,23 +34,23 @@ def get_distances_and_addresses(start_point, destinations):
     multiplier=0
     distances = []
     addresses = []
-    try:
-        while i < len(destinations):
-            temp_distance_url = distance_url+destinations[i]
-            i+=1
-            for n in range(24):
-                if i < len(destinations):
-                    temp_distance_url = temp_distance_url +'|'+ destinations[i]
-                i += 1
-            temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial"
-            result = json.load(urllib.urlopen(temp_distance_url))
-            for address in result['destination_addresses']:
-                addresses.append(address)
-            for element in result['rows'][0]['elements']:
-                distances.append(element['distance']['text'])
-    except Exception as e:
-        print e.__doc__
-        print e.message
+    while i < len(destinations):
+        temp_distance_url = distance_url+destinations[i]
+        i+=1
+        for n in range(24):
+            try:
+            if i < len(destinations):
+                temp_distance_url = temp_distance_url +'|'+ destinations[i]
+            i += 1
+            except Exception as e:
+                print e.__doc__
+                print e.message
+        temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial"
+        result = json.load(urllib.urlopen(temp_distance_url))
+        for address in result['destination_addresses']:
+            addresses.append(address)
+        for element in result['rows'][0]['elements']:
+            distances.append(element['distance']['text'])
     return distances, addresses
     
 
