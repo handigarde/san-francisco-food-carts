@@ -48,7 +48,7 @@ def get_distances_and_addresses(start_point, destinations):
                 addresses.append(address)
             for element in result['rows'][0]['elements']:
                 distances.append(element['distance']['text'])
-    catch Exception as e:
+    except Exception as e:
         print e.__doc__
         print e.message
     return distances, addresses
