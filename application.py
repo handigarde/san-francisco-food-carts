@@ -39,9 +39,9 @@ def get_distances_and_addresses(start_point, destinations):
         i+=1
         for n in range(24):
             try:
-            if i < len(destinations):
-                temp_distance_url = temp_distance_url +'|'+ destinations[i]
-            i += 1
+                if i < len(destinations):
+                    temp_distance_url = temp_distance_url +'|'+ destinations[i]
+                i += 1
             except Exception as e:
                 print e.__doc__
                 print e.message
