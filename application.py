@@ -1,4 +1,4 @@
-import urllib2, json
+import urllib,urllib2, json
 from rtree import index
 from flask import Flask, Response, render_template, jsonify
 try:
@@ -20,7 +20,12 @@ def load_category_tags(file_location):
     #set TAGS_BY_ITEM
     json_file = open(file_location)
     return json.load(json_file)
-    
+
+def get_distance(start_point, end_point):
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial"
+    result= json.load(urllib.urlopen(distance_url))
+    distance = result['rows'][0]['elements'][0]['distance']['text']
+    return distance
 
 def load_cart_info(url):
     #Create request object to request the aforementioned list
@@ -64,6 +69,7 @@ def load_cart_info(url):
     return (carts, tag_index, IDX)
 
 def find_nearby_carts(longitude, latitude,index):
+    start_point = latitude, longitude
     nearby_box = (longitude - NEARBY_LONG_DELTA, latitude - NEARBY_LAT_DELTA, longitude + NEARBY_LONG_DELTA, latitude + NEARBY_LAT_DELTA)
     matching_indices = list(IDX.intersection(nearby_box))
     return matching_indices
@@ -88,6 +94,14 @@ def showCategories():
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
     return jsonify(data=CARTS[index])
+    
+@app.route('/distance/<lat_long>')
+def showDistance(lat_long):
+    start_point = lat_long
+    end_point = '37.7841316511211,-122.39591339799'
+    distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial"
+    result= json.load(urllib.urlopen(distance_url))
+    return jsonify(result)
 
 @app.route('/location/<lat_long>')
 @app.route('/location/<lat_long>/<category>')
@@ -100,6 +114,10 @@ def send_nearby_carts(lat_long, category='Anything'):
     for index in find_nearby_carts(longitude, latitude, IDX):
         if index in TAGS_BY_TRUCK[category]:
             result.append(CARTS[index])
+            start_point = lat_long[0] + ',' + lat_long[1]
+            end_point = str(CARTS[index]['latitude'])+','+str(CARTS[index]['longitude'])
+            distance = get_distance(start_point, end_point)
+            CARTS[index]['distance'] = distance
     return jsonify(data=result)
         
         
