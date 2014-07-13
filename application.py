@@ -45,7 +45,10 @@ def load_cart_info(url):
     for cart in allCarts:
         if 'latitude' in cart:
             temp_cart = {}
-            temp_cart['applicant'] = cart['applicant']
+            temp_applicant_name = cart['applicant']
+            if 'DBA' in temp_applicant_name:
+                temp_applicant_name = temp_applicant_name.split('DBA')[1][1:].strip()   
+            temp_cart['applicant'] = temp_applicant_name
             temp_cart['facilitytype'] = cart['facilitytype']
             temp_cart['fooditems'] = cart['fooditems']
             temp_cart['latitude'] = cart['latitude']
@@ -90,7 +93,7 @@ def showIndex():
     
 @app.route('/categories')
 def showCategories():
-    return jsonify(data=TAGS_BY_TRUCK)
+    return jsonify(data={'categories': TAGS_BY_TRUCK.keys()})
     
 @app.route('/truck/<int:index>')
 def show_truck_info(index):
