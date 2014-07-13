@@ -43,11 +43,14 @@ def get_distances_and_addresses(start_point, destinations):
                 temp_distance_url = temp_distance_url +'|'+ destinations[i]
             i += 1
         temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial&key="+API_KEY
-        result = json.load(urllib.urlopen(temp_distance_url))
-        for address in result['destination_addresses']:
-            addresses.append(address)
-        for element in result['rows'][0]['elements']:
-            distances.append(element['distance']['text'])
+        try:
+            result = json.load(urllib.urlopen(temp_distance_url))
+            for address in result['destination_addresses']:
+                addresses.append(address)
+            for element in result['rows'][0]['elements']:
+                distances.append(element['distance']['text'])
+        except Exception as ex:
+            pass
     return distances, addresses
     
 
@@ -150,16 +153,19 @@ def send_nearby_carts(lat_long, category='Anything'):
             unsorted_result.append(CARTS[index])
             unsorted_result_lat_long.append(CARTS[index]['latitude']+','+CARTS[index]['longitude'])
     distances, addresses = get_distances_and_addresses(lat_long[0]+','+lat_long[1], unsorted_result_lat_long)
-    for i in range(len(unsorted_result)):
-        unsorted_result[i]['distance'] = distances[i]
-        unsorted_result[i]['address'] = addresses[i]
-        if 'ft' in unsorted_result[i]['distance']:
-            result_feet.append(unsorted_result[i])
-        else:
-            result_miles.append(unsorted_result[i])
-    result_feet.sort(key=operator.itemgetter('distance'))
-    result_miles.sort(key=operator.itemgetter('distance'))
-    result = result_feet + result_miles
+    if len(distances) == len(unsorted_result):
+        for i in range(len(unsorted_result)):
+            unsorted_result[i]['distance'] = distances[i]
+            unsorted_result[i]['address'] = addresses[i]
+            if 'ft' in unsorted_result[i]['distance']:
+                result_feet.append(unsorted_result[i])
+            else:
+                result_miles.append(unsorted_result[i])
+        result_feet.sort(key=operator.itemgetter('distance'))
+        result_miles.sort(key=operator.itemgetter('distance'))
+        result = result_feet + result_miles
+    else:
+        result = unsorted_result
     return jsonify(data=result)
         
         
