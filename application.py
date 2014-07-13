@@ -21,11 +21,12 @@ def load_category_tags(file_location):
     json_file = open(file_location)
     return json.load(json_file)
 
-def get_distance(start_point, end_point):
+def get_distance_address(start_point, end_point):
     distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial"
     result= json.load(urllib.urlopen(distance_url))
     distance = result['rows'][0]['elements'][0]['distance']['text']
-    return distance
+    address = result['destination_addresses'][0]
+    return distance, address
 
 def load_cart_info(url):
     #Create request object to request the aforementioned list
@@ -116,8 +117,9 @@ def send_nearby_carts(lat_long, category='Anything'):
             result.append(CARTS[index])
             start_point = lat_long[0] + ',' + lat_long[1]
             end_point = str(CARTS[index]['latitude'])+','+str(CARTS[index]['longitude'])
-            distance = get_distance(start_point, end_point)
+            distance, address = get_distance_address(start_point, end_point)
             CARTS[index]['distance'] = distance
+            CARTS[index]['address'] = address
     return jsonify(data=result)
         
         
