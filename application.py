@@ -1,4 +1,4 @@
-import urllib,urllib2, json
+import urllib,urllib2, json, operator
 from rtree import index
 from flask import Flask, Response, render_template, jsonify
 try:
@@ -117,15 +117,22 @@ def send_nearby_carts(lat_long, category='Anything'):
     lat_long = lat_long.split(',')
     latitude = float(lat_long[0])
     longitude = float(lat_long[1])
-    result = []
+    result_feet = []
+    result_miles = []
     for index in find_nearby_carts(longitude, latitude, IDX):
         if index in TAGS_BY_TRUCK[category]:
-            result.append(CARTS[index])
             start_point = lat_long[0] + ',' + lat_long[1]
             end_point = str(CARTS[index]['latitude'])+','+str(CARTS[index]['longitude'])
             distance, address = get_distance_address(start_point, end_point)
             CARTS[index]['distance'] = distance
             CARTS[index]['address'] = address
+            if 'ft' in CARTS[index]['distance']:
+                result_feet.append(CARTS[index])
+            else:
+                result_miles.append(CARTS[index])
+    result_feet.sort(key=operator.itemgetter('distance'))
+    result_miles.sort(key=operator.itemgetter('distance'))
+    result = result_feet + result_miles
     return jsonify(data=result)
         
         
