@@ -43,7 +43,6 @@ def get_distances_and_addresses(start_point, destinations):
             i += 1
         temp_distance_url = temp_distance_url + "&mode=walking&language=en-EN&sensor=false&units=imperial"
         result = json.load(urllib.urlopen(temp_distance_url))
-        print str(len(destinations)) + '\n' + str(result)
         for address in result['destination_addresses']:
             addresses.append(address)
         for element in result['rows'][0]['elements']:
