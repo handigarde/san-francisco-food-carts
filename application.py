@@ -115,7 +115,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def showIndex():
-    options = {'/location/<lat_long>': 'Pass comma separated latitude,longitude value to get info for nearby carts. Values returned are in the format {"data": [list of carts containing address, applicant, distance, facilitytype, fooditems, latitude, and longitude]}', '/location/<lat_long>/<category>': 'Returns all carts near comma separated latitude longitude matching a particular category. List of available categories can be found using the /categories option. Results formatted the same as /location/<lat_long>', '/categories': 'Returns categories in format "data"=[list of categories]'}
+    options = {'/location/<lat_long>': 'Pass comma separated latitude,longitude value to get info for nearby carts.Values returned are in the format:{"data": [list of carts containing address, applicant, distance, facilitytype, fooditems, latitude, and longitude]}', '/location/<lat_long>/<category>': 'Returns all carts near comma separated latitude longitude matching a particular category. List of available categories can be found using the /categories option. Results formatted the same as /location/<lat_long>', '/categories': 'Returns categories in format "data"=[list of categories]'}
     return jsonify(options)
     
 @app.route('/categories')
