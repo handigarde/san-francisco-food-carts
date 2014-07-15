@@ -53,9 +53,7 @@ class TestCartAPI(unittest.TestCase):
         """
         url = api_address + '/location/37.7823601210175,-122.402095994563/Eats'
         try:
-            results = urllib.urlopen(url)
-            print results
-            result = json.load(results)['data']
+            results = json.load(urllib.urlopen(url))['data']
             self.assertTrue('Valid categories' in results)
         except ValueError:
             self.fail(msg='JSON response not received from API')

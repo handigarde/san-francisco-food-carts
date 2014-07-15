@@ -1,26 +1,185 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/slate/bootstrap.min.css" rel="stylesheet">
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-    <script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s">
-    </script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-     <script type="text/javascript">
-     var geocoder = new google.maps.Geocoder();
-      $(document).on('click', '.get-latlong', function(e){
-      	e.preventDefault();
-      	geocoder.geocode({
-      		address: $('.select-address').val().trim() + ', San Francisco, CA'
-      	}, function(results, status){
-      		console.log('Geocoding return: ' + results[0].geometry.location);
-      	});
-      })
-      .on('focus', '.select-address', function(e){
-      	$('.select-address').value = '';
-      });
+	<head>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<link href="/css/bootstrap.min.css" rel="stylesheet">
+		<link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.css" rel="stylesheet">
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			//Global JS Namespace
+			var Truck = {};
+			Truck.map = {};
+			Truck.markers = [];
+			Truck.infoWindows = [];
+			Truck.openWindow = -1;
+
+			//Variables for API calls
+			Truck.api = 'http://54.186.126.107:5000/'
+			
+			//Google maps objects
+			Truck.geocoder = new google.maps.Geocoder();
+			
+
+			//Templates for dynamically generated HTML
+			Truck.resultEntry = $.parseHTML('<li class="result"><div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div><div class="result-list-content"><h3 class="result-list-name">Result 1</h3><h5 class="result-list-address">123 Main Street</h5></div><h4 class="result-list-distance">.4 Miles</h4></div></li>');
+			Truck.categoryEntry = $.parseHTML('<option>Anything</option>');
+
+			/*addCategories:
+			* Callback function,
+			* Expects JSON response object
+			* Places categories of trucks in select dropdown
+			*/
+			Truck.addCategories = function(res){
+				var $select = $('.select-dropdown');
+				$select.empty();
+				for(var i = 0; i < res.data.length; i++){
+					var $temp = $(Truck.categoryEntry).clone();
+					$temp.text(res.data[i]);
+					$temp.attr('category', res.data[i]);
+					$select.append($temp);
+				}
+			};
+
+
+			/* getCategories:
+			* Called on document ready
+			* Expects event object
+			* Performs api call to backend for list of
+			* truck categories
+			*/
+			Truck.getCategories = function(){
+				$.ajax({
+					url: Truck.api + 'categories',
+					dataType: 'json',
+					success: Truck.addCategories
+				});
+			};
+
+			Truck.getLatLong = function(e){
+				e.preventDefault();
+				return Truck.geocoder.geocode({
+	 				address: $('.select-input').val().trim() + ', San Francisco, CA'
+		 		}, function(results, status){
+		 			Truck.onGeocodeReturn(results, status);
+		 		});
+			};
+
+			Truck.initializeMap = function(){
+				Truck.mapOptions = {
+					zoom: 13,
+					center: new google.maps.LatLng(37.774929, -122.419416)
+				};
+				Truck.map = new google.maps.Map(document.getElementById('map-canvas'),
+				Truck.mapOptions);
+
+			};
+
+			Truck.onGeocodeReturn = function(results, status){
+				var latlong = '';
+				latlong = '' + results[0].geometry.location;
+				var latlongParams = latlong.replace(/[^\.,0-9_-]/g,'');
+				var category = $('.select-dropdown').find(":selected").text();
+				var appendCategory = category !== 'Anything' ? true : false;
+
+				var url = Truck.api + 'location/' + latlongParams + (appendCategory ? '/' + category : '');
+				$.ajax({
+					url: url,
+					dataType: 'json',
+					success: Truck.onTruckResultsReturn
+				});
+			};
+
+			Truck.onTruckResultsReturn = function(res){
+				var error = $.parseHTML('<h3>(No Results Found)</h3>');
+				var $select = $('.results-container-list');
+				$select.empty();
+				//Reset all map objects and listeners
+				Truck.markers = [];
+				Truck.infoWindows = [];
+				Truck.openWindow = -1
+				google.maps.event.clearInstanceListeners(Truck.map)
+				
+				if(res.data.length < 1){
+					$select.append(error);
+				}
+				else{
+					Truck.mapOptions = {
+						zoom: 16,
+						center: new google.maps.LatLng(res.data[0].latitude, res.data[0].longitude)
+					};
+					Truck.map = new google.maps.Map(document.getElementById("map-canvas"), Truck.mapOptions);
+					for(var i = 0; i < res.data.length; i++){
+						var result = res.data[i];
+						var $temp = $(Truck.resultEntry).clone();
+						$temp.find('.result-list-name').html(result.applicant);
+						$temp.find('.result-list-address').html(result.address);
+						$temp.find('.result-list-distance').html(result.distance);
+						$temp.attr('data-lat', result.latitude);
+						$temp.attr('data-long', result.longitude);
+						$temp.attr('data-index', i);
+						$temp.addClass('result-' + i);
+						$select.append($temp);
+
+						var infoWindowContent = '<div id="content">' +
+							'<h1 id="firstHeading" class="info-window-name"> ' + result.applicant +
+							' </h1>'+
+							'<div id="bodyContent"> <h4 class="info-window-address">'+ result.address + 
+							'</h4><h5 class="info-window-content">' + result.fooditems.replace(/[:]/gi, ',') + 
+							'</h5></div></div>'
+						//Add marker for this truck
+						var marker = new google.maps.Marker({
+							position: new google.maps.LatLng(result.latitude, result.longitude),
+							title: result.applicant,
+							map: Truck.map,
+							draggable:false,
+							animation: google.maps.Animation.DROP,
+							markerIndex: i
+						});
+
+						var infoWindow =  new google.maps.InfoWindow({
+							content: infoWindowContent
+						});
+
+						google.maps.event.addListener(marker, 'click', function(e){
+							if(Truck.openWindow !== -1){
+								Truck.infoWindows[Truck.openWindow].close();
+							}
+							if(e){
+								Truck.map.panTo(e.latLng);
+							}
+							else{
+								Truck.map.panTo(this.position);
+							}
+							Truck.openWindow = this.markerIndex;
+							Truck.infoWindows[this.markerIndex].open(Truck.map, this);
+						});
+
+						Truck.infoWindows.push(infoWindow);
+						Truck.markers.push(marker);
+					}
+				}
+			};
+
+
+			//Attach event handlers on document ready
+			$(document).on('click', '.get-latlong', function(e){
+				Truck.getLatLong(e);
+			})
+			.on('click', '.result', function(e){
+				e.stopPropagation();
+				google.maps.event.trigger(Truck.markers[$(e.currentTarget).data('index')], 'click' );
+			})
+			.on('focus', '.select-input', function(e){
+				this.value = '';
+			})
+			.on('ready', function(e){
+				e.preventDefault();
+				Truck.getCategories();
+			});
+
+			//Attach google maps event handlers on window load event
+			google.maps.event.addDomListener(window, 'load', Truck.initializeMap);
     </script>
     <style>
     	html{
@@ -35,27 +194,25 @@
     		min-width:100%;
     		margin-bottom:20px;
     		padding: 6px 20px;
+    		z-index: 100;
     	}
     	.nav-list{
-    		float: left;
     		margin-left:1em;
     		width:80%;
     		display:inline;
     	}
   		.nav-item.title{
   			display:inline-block;
-				max-width:50%;
 				text-align: left;
-
+				width:40%;
   			height:1em;
 			}
 			.nav-item.author{
 				display:inline-block;
-				float:right;
 				text-align:right;
-				max-width:30%;
-
+				width:30%;
   			height:1em;
+  			margin-left:20%;
 			}
 	    ul, li{
     		list-style-type: none;
@@ -65,23 +222,22 @@
     		margin:0;
     	}
     	.select-container{
-    		width:60%;
-    		margin: 20px auto;
+    		width:80%;
+    		margin: 80px 0 0 auto;
     		display:block;
     		clear:both;
     	}
     	.results-container{
-    		width:50%;
+    		width:80%;
     		margin: 20px auto;
     		display:block;
-    		clear:both;
     		background: #ddd;
     		color:#000;
     		overflow-y: scroll;
     		overflow-x: hidden;
     		-moz-box-shadow:    inset 0 0 10px #000000;
-				-webkit-box-shadow: inset 0 0 10px #000000;
-				box-shadow:         inset 0 0 10px #000000;
+				-webkit-box-shadow: inset 0 0 100px #000000;
+				box-shadow: inset 0 0 10px #000000;
 
     	}
     	.select-options, .select-prompt{
@@ -91,7 +247,8 @@
 				list-style-type: none;
 				display: block;
 				padding:0;
-				max-height:300px;
+				max-height:400px;
+				min-height:200px;
 			}
   		.results-container-list>li{
   			display:inline-block;
@@ -99,10 +256,16 @@
   			text-transform:uppercase;
   			width: 100%;
   			border-bottom: solid 2px #111;
+  			cursor: pointer;
+  		}
+  		.results-container-list>li:hover{
+  			background:#eff;
+  			-moz-box-shadow: 2px 2px 10px #eee;
+				-webkit-box-shadow: 2px 2px 10px #eee;
+				box-shadow: 2px 2px 10px #eee;
   		}
   		.result-list-icon{
   			width:10%;
-  			float:left;
   			color: #6CA0F1;
 
   		}
@@ -112,21 +275,45 @@
   		}
   		.result-list-name{
   			display:inline-block;
-  			width:40%;
+  			width:80%;
   		}
     	.map-wrapper{
-    		margin: 10% auto 0 auto;
+    		margin-left: auto;
     		clear:both;
-    		width:100%;
+    		width:85%;
     		height:50%;
-    		text-align:center;
+    		display:block;
     	}
     	.button{
     		height: 36px;
-    		float: right;
+    		margin-left:30px;
     		width: 20%;
     		outline: 0;
     		border-radius:20px;
+    	}
+    	.no-results{
+    		text-align: center;
+    		border:none !important;
+    	}
+    	#map-canvas{
+    		margin: 20px auto 0 0;
+    	}
+    	.main-left{
+    		margin: 3% auto 0 auto;
+    		width:100%;
+    		display:block;
+    	}
+    	.main-right{
+    		display:block;
+    	}
+    	.info-window-name{
+    		color:#000;
+    	}
+    	.info-window-address{
+    		color:#00DD88;
+    	}
+    	.info-window-content{
+    		color: #000;
     	}
     </style>
   </head>
@@ -134,100 +321,36 @@
   	<header>
   		<nav class="nav">
   			<ul class="nav-list">
-  				<li class="nav-item title"><h1>SF 	Food Truck Finder</h1></li>
-  				<li class="nav-item author"><h2>(Ryan Handy)</h2></li>
+  				<li class="nav-item title"><h1>SF Food Truck Finder</h1></li>
+  				<li class="nav-item author"><h4>(Ryan Handy)</h4></li>
   			</ul>
   		</nav>
   	</header>
   	<main>
-  		<article>
+  		<div class="select-container">
+				<div class="select-prompt"><h3>Show me trucks selling </h3></div>
+				<div class="select-options">
+					<select class='select-dropdown'>
+						<option>Anything</option>
+					</select>
+				</div>
+				<div class="select-prompt"><h3>near &nbsp;</h3></div>
+				<div class="select-prompt select-address"><input class="select-input" type="text" maxlength="100" value="123 Main Street"/></div>
+				<button class="select-prompt button btn-success get-latlong">FIND</button>
+  		</div>
+  		<div class="main-left">
 	  		<div class="map-wrapper">
 	  			<!--<h1>THIS IS A MAP</h1>-->
-		  		<iframe
-						width="50%"
-						height="50%"
-						frameborder="0" style="border:0"
-		  			src="https://www.google.com/maps/embed/v1/search?key=AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s&q=record+stores+in+Seattle"></iframe>
+		  		<div id="map-canvas" style="width: 80%; height: 500px"></div>
 				</div>
-			</article>
-			<article>
-				<div class="select-container">
-					<div class="select-prompt"><h3>Show me trucks selling </h3></div>
-					<div class="select-options">
-						<select>
-						    {% for category in categories %}
-						    <option>{{ category }}</option>
-						    {% endfor %}
-							<!--<option>Grilled Cheese</option>
-							<option>Hot Dogs</option>
-							<option>Tacos</option>-->
-						</select>
-					</div>
-					<div class="select-prompt"><h3>near &nbsp;</h3></div>
-					<div class="select-prompt select-address"><input type="text" maxlength="100" value="123 Main Street"/></div>
-					<button class="select-prompt button btn-success get-latlong">FIND</button>
-  		</div>
+			</div>
+			<div class="main-right">
   		<div class="results-container">
   			<ul class="results-container-list">
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
-  				<li class="result">
-  					<div class="result-list-icon"><i class="fa fa-truck fa-3x"></i></div>
-  					<div class="result-list-content">
-  						<h3 class="result-list-name">Result 1</h3>
-  						<h5 class="result-list-address">123 Main Street</h5>
-  						<h4 class="result-list-distance">.4 Miles</h4>
-  					</div>
-  				</li>
+  				<li class="no-results"><h3 class="no-results">(no results)</h3></li>
   			</ul>
   		</div>
-			</article>
+			</div>
   	</main>
   	<footer>
   	</footer>
