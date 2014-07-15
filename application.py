@@ -141,6 +141,8 @@ def showDistance(lat_long):
 @app.route('/location/<lat_long>/<category>')
 @cross_origin()
 def send_nearby_carts(lat_long, category='Anything'):
+    if category not in TAGS_BY_TRUCK:
+        return jsonify(data='Valid categories: %s' % str(TAGS_BY_TRUCK.keys()))
     lat_long = lat_long.split(',')
     latitude = float(lat_long[0])
     longitude = float(lat_long[1])
