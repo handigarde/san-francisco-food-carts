@@ -14,6 +14,7 @@ TAG_INFO_FILE = "config/tag_info.json"
 TAGS_BY_ITEM = {} #List of food items to be used on the front-end
 TAGS_BY_TRUCK = {}
 IDX = None
+#API_KEY is specific to one AWS EC2 instance. Key will need to be changed to run on other hosts
 API_KEY='AIzaSyDrxXyrmwzQr6kbt6TKd-9rxvy7qacSG4U'
 #note to self - long is probably not the best x coordinate to use, as distance between degrees varies depending on latitude
 
