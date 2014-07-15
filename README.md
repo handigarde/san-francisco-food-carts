@@ -12,6 +12,7 @@ Note for setting up Rtree and flask:
 - You're good to go  
 
 This project has been created for validation for a back-end track application to https://www.uber.com/  
+An example front-end for this project can be loaded from http://uber-project.s3-website-us-east-1.amazonaws.com/index.html and points to the most recently pushed version of the application at https://github.com/handigarde/san-francisco-food-carts. This front-end file is also included in the templates directory.
 
 Information regarding technologies used:  
 - Python was chosen as the primary language for the back-end due to my familiarity with the language, Flask, being a well-known framework for building APIs was the best choice for building the framework itself. This required some work, as my familiarity with Flask prior to starting this application did not stretch far beyond a basic "Hello World" application and definitely did not include any knowledge of parsing/sending JSON objects.  
