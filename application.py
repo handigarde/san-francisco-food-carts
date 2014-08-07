@@ -1,6 +1,7 @@
 import urllib,urllib2, json, operator
 from rtree import index
 from flask import Flask, Response, render_template, jsonify
+from statsd import statsd
 try:
     from flask.ext.cors import cross_origin
 except:
@@ -15,7 +16,7 @@ TAGS_BY_ITEM = {} #List of food items to be used on the front-end
 TAGS_BY_TRUCK = {}
 IDX = None
 #API_KEY is specific to one AWS EC2 instance. Key will need to be changed to run on other hosts
-API_KEY='AIzaSyDrxXyrmwzQr6kbt6TKd-9rxvy7qacSG4U'
+API_KEY='AIzaSyDitLtRc9yi2JrNiXgC_tUnzJFZd8uVO4s'
 #note to self - long is probably not the best x coordinate to use, as distance between degrees varies depending on latitude
 
 def load_category_tags(file_location):
@@ -115,31 +116,40 @@ print '%d carts loaded' % len(CARTS)
 app = Flask(__name__)
 
 @app.route('/')
+@statsd.timed('cart-api.request_time', tags=['support','page:options'])
 def showIndex():
     options = {'/location/<lat_long>': 'Pass comma separated latitude,longitude value to get info for nearby carts.Values returned are in the format:{"data": [list of carts containing address, applicant, distance, facilitytype, fooditems, latitude, and longitude]}', '/location/<lat_long>/<category>': 'Returns all carts near comma separated latitude longitude matching a particular category. List of available categories can be found using the /categories option. Results formatted the same as /location/<lat_long>', '/categories': 'Returns categories in format "data"=[list of categories]'}
+    statsd.increment('cart-api.requests', tags=['support','page:options'])
     return jsonify(options)
     
 @app.route('/categories')
+@statsd.timed('cart-api.request_time', tags=['support','page:categories'])
 @cross_origin()
 def showCategories():
     categories = TAGS_BY_TRUCK.keys()
     categories.sort()
+    statsd.increment('cart-api.requests', tags=['support','page:categories'])
     return jsonify(data=categories)
     
 @app.route('/truck/<int:index>')
+@statsd.timed('cart-api.request_time', tags=['support','page:truck_info'])
 def show_truck_info(index):
+    statsd.increment('cart-api.requests', tags=['support','page:truck_info'])
     return jsonify(data=CARTS[index])
     
 @app.route('/distance/<lat_long>')
+@statsd.timed('cart-api.request_time', tags=['support','page:distance_test'])
 def showDistance(lat_long):
     start_point = lat_long
     end_point = '37.7841316511211,-122.39591339799'
     distance_url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins="+start_point+"&destinations="+end_point+"&mode=walking&language=en-EN&sensor=false&units=imperial&key="+API_KEY
     result= json.load(urllib.urlopen(distance_url))
+    statsd.increment('cart-api.requests', tags=['support','page:distance_test'])
     return jsonify(result)
 
 @app.route('/location/<lat_long>')
 @app.route('/location/<lat_long>/<category>')
+@statsd.timed('cart-api.request_time', tags=['support','page:nearby_carts'])
 @cross_origin()
 def send_nearby_carts(lat_long, category='Anything'):
     if category not in TAGS_BY_TRUCK:
@@ -169,6 +179,7 @@ def send_nearby_carts(lat_long, category='Anything'):
         result = result_feet + result_miles
     else:
         result = unsorted_result
+    statsd.increment('cart_api.requests', tags=['support','page:nearby_carts'])
     return jsonify(data=result)
         
         
